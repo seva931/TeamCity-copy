@@ -1,5 +1,6 @@
 package jupiter.annotation.meta;
 
+import jupiter.extension.BrowserExtension;
 import jupiter.extension.UiAuthExtension;
 import jupiter.extension.UserExtension;
 import org.junit.jupiter.api.Tag;
@@ -15,7 +16,8 @@ import java.lang.annotation.Target;
 @Tag("web")
 @ExtendWith({
         UserExtension.class,
-        UiAuthExtension.class
+        UiAuthExtension.class,
+        BrowserExtension.class
 })
 public @interface WebTest {
 }

@@ -15,7 +15,6 @@ mvn test -Pselenoid                        # через Selenoid
 mvn test -Dtest.groups=web                 # только @Tag("web"), local
 mvn test -Dtest.groups=api                 # только @Tag("api"), local
 mvn test -Pselenoid -Dtest.groups=web      # только @Tag("web"), Selenoid
-mvn test -Pselenoid -Dtest.groups=api      # только @Tag("api"), Selenoid
 ```
 
 ---
@@ -37,3 +36,28 @@ mvn surefire-report:report-only
 mvn test
 mvn surefire-report:report-only
 ```
+
+---
+
+## Отчёт Allure
+
+Сгенерировать статический отчёт:
+
+```bash
+mvn allure:report
+```
+
+Открыть отчёт локально:
+
+```bash
+mvn allure:serve
+```
+
+Если `allure-results` пустой, сначала запустите тесты:
+
+```bash
+mvn test
+mvn allure:report
+```
+
+При падении UI-тестов в Allure автоматически прикладывается скриншот с именем `Screenshot on fail`.

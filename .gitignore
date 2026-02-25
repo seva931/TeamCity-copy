@@ -74,3 +74,6 @@ build/
 .env.local
 *.local.properties
 infra/.env
+
+allure-results
+.allure

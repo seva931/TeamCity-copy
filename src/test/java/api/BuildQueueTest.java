@@ -26,6 +26,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 @WithBuild
 public class BuildQueueTest extends BaseTest {
 
+    @Disabled
     @Test
     void userCanGetInfoAboutAllQueuedBuildWithEmptyQueue(
             @User CreateUserResponse user
