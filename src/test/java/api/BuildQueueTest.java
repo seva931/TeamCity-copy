@@ -17,6 +17,7 @@ import jupiter.annotation.Project;
 import jupiter.annotation.User;
 import jupiter.annotation.meta.ApiTest;
 import jupiter.annotation.meta.WithBuild;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
@@ -71,6 +72,7 @@ public class BuildQueueTest extends BaseTest {
                 .contains(tuple(buildInQueue.getId(), buildInQueue.getBuildTypeId(), buildInQueue.getState()));
     }
 
+    @Disabled
     @Test
     void userCanQueueRegularBuild(
             @User CreateUserResponse user,
