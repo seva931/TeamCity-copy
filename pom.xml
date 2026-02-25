@@ -13,6 +13,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <test.groups></test.groups>
 
         <restassured.version>5.5.1</restassured.version>
         <junit.jupiter.version>5.10.2</junit.jupiter.version>
@@ -98,5 +99,48 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.5</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <uiRemote>${uiRemote}</uiRemote>
+                        <ui.baseUrl>${ui.baseUrl}</ui.baseUrl>
+                    </systemPropertyVariables>
+                    <groups>${test.groups}</groups>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>3.5.5</version>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>local</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <uiRemote></uiRemote>
+                <ui.baseUrl>http://localhost:8111</ui.baseUrl>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>selenoid</id>
+            <properties>
+                <uiRemote>http://localhost:4444/wd/hub</uiRemote>
+                <ui.baseUrl>http://teamcity-server:8111</ui.baseUrl>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>

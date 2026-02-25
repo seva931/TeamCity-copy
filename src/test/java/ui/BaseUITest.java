@@ -1,11 +1,12 @@
 package ui;
 
-import api.configs.Config;
+import configs.Config;
 import com.codeborne.selenide.Configuration;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.openqa.selenium.MutableCapabilities;
 
 import java.util.Map;
 
@@ -14,14 +15,21 @@ public class BaseUITest {
 
     @BeforeAll
     public static void setupSelenide() {
-        Configuration.remote = Config.getProperty("uiRemote");
-        Configuration.baseUrl = api.configs.Config.getProperty("ui.baseUrl");
-        Configuration.browser = api.configs.Config.getProperty("browser");
-        Configuration.browserSize = api.configs.Config.getProperty("browser.size");
+        Configuration.baseUrl = Config.getProperty("ui.baseUrl");
+        Configuration.browser = Config.getProperty("browser");
+        Configuration.browserSize = Config.getProperty("browser.size");
 
-        Configuration.browserCapabilities.setCapability("selenoid:options",
-                Map.of("enableVNC", true, "enebleLog", true)
-        );
+        String remote = Config.getProperty("uiRemote");
+        boolean isRemote = remote != null && !remote.isBlank();
+        Configuration.remote = isRemote ? remote : null;
+
+        if (isRemote) {
+            MutableCapabilities caps = new MutableCapabilities();
+            caps.setCapability("selenoid:options", Map.of("enableVNC", true, "enableLog", true));
+            Configuration.browserCapabilities = caps;
+        } else {
+            Configuration.browserCapabilities = new MutableCapabilities();
+        }
     }
 
     @BeforeEach

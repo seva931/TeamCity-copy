@@ -1,0 +1,78 @@
+services:
+  teamcity-server:
+    image: jetbrains/teamcity-server:${TEAMCITY_VERSION}
+    ports:
+      - "${TEAMCITY_PORT:-8111}:8111"
+    volumes:
+      - teamcity_datadir:/data/teamcity_server/datadir
+      - teamcity_logs:/opt/teamcity/logs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8111/mnt/get/currentState >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  teamcity-agent-1:
+    image: jetbrains/teamcity-agent:${TEAMCITY_VERSION}
+    environment:
+      SERVER_URL: "http://teamcity-server:8111"
+      AGENT_NAME: "${TEAMCITY_AGENT_1_NAME:-tc-agent-1}"
+    volumes:
+      - teamcity_agent_1_conf:/data/teamcity_agent/conf
+    depends_on:
+      teamcity-server:
+        condition: service_healthy
+
+  teamcity-agent-2:
+    image: jetbrains/teamcity-agent:${TEAMCITY_VERSION}
+    environment:
+      SERVER_URL: "http://teamcity-server:8111"
+      AGENT_NAME: "${TEAMCITY_AGENT_2_NAME:-tc-agent-2}"
+    volumes:
+      - teamcity_agent_2_conf:/data/teamcity_agent/conf
+    depends_on:
+      teamcity-server:
+        condition: service_healthy
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "${SWAGGER_UI_PORT:-8082}:8080"
+    environment:
+      SWAGGER_JSON_URL: "http://localhost:${TEAMCITY_PORT:-8111}/app/rest/swagger.json"
+    depends_on:
+      teamcity-server:
+        condition: service_healthy
+
+  selenoid:
+    image: aerokube/selenoid:latest-release
+    profiles: ["selenoid"]
+    ports:
+      - "${SELENOID_PORT:-4444}:4444"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./browsers.json:/etc/selenoid/browsers.json:ro
+    command: ["-limit", "5", "-container-network", "teamcity-net", "-conf", "/etc/selenoid/browsers.json"]
+
+  selenoid-ui:
+    image: aerokube/selenoid-ui:latest-release
+    profiles: ["selenoid"]
+    ports:
+      - "${SELENOID_UI_PORT:-8080}:8080"
+    command: ["--selenoid-uri", "http://selenoid:4444"]
+    depends_on:
+      - selenoid
+
+networks:
+  default:
+    name: teamcity-net
+
+volumes:
+  teamcity_datadir:
+    name: teamcity_datadir
+  teamcity_logs:
+    name: teamcity_logs
+  teamcity_agent_1_conf:
+    name: teamcity_agent_1_conf
+  teamcity_agent_2_conf:
+    name: teamcity_agent_2_conf

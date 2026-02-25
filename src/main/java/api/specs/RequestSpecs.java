@@ -1,6 +1,6 @@
 package api.specs;
 
-import api.configs.Config;
+import configs.Config;
 import api.models.CreateUserResponse;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.RequestLoggingFilter;

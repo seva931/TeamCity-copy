@@ -1,6 +1,6 @@
 package api.models;
 
-import api.configs.Config;
+import configs.Config;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import common.generators.TestDataGenerator;
 import lombok.AllArgsConstructor;

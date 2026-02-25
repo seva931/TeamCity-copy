@@ -1,4 +1,4 @@
-package api.configs;
+package configs;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +20,14 @@ public class Config {
     }
 
     public static String getProperty(String key) {
+        String envKey = key.replace(".", "_").toUpperCase();
+
+        String envValue = System.getenv(envKey);
+        if (envValue != null) return envValue;
+
+        String sysValue = System.getProperty(key);
+        if (sysValue != null) return sysValue;
+
         return INSTANCE.properties.getProperty(key);
     }
 }
