@@ -2,7 +2,6 @@ package ui;
 
 import api.models.Agent;
 import api.models.CreateUserResponse;
-import configs.Config;
 import jupiter.annotation.User;
 import jupiter.annotation.WithAgent;
 import jupiter.annotation.meta.WebTest;
@@ -16,11 +15,10 @@ import ui.pages.AgentsOverviewPage;
 @ExtendWith(AgentExtension.class)
 public class AgentsTest extends BaseUITest {
 
-    @Disabled("Падает, скотина")
-    @WithAgent
+    @WithAgent(configKeys = {"teamcity.agent.1.name"})
     @Test
     void userCanDisableAgent(@User CreateUserResponse user, Agent[] agents) {
-        String agentName = Config.getProperty("teamcity.agent.1.name");
+        String agentName = agents[0].getName();
         new AgentsOverviewPage()
                 .open()
                 .disableAgent(agentName, "Disable for maintenance");

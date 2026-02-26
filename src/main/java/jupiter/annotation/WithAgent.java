@@ -8,5 +8,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface WithAgent {
-    int count() default 1;
+    String[] configKeys() default {
+            "teamcity.agent.1.name",
+            "teamcity.agent.2.name"
+    };
 }
