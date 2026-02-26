@@ -6,7 +6,8 @@
 - `teamcity-server`
 - `teamcity-agent-1`
 - `teamcity-agent-2`
-- `swagger-ui`
+- `swagger-ui` (опционально, через профиль `swagger`)
+- `nginx` (опционально, через профиль `swagger`; reverse proxy для `swagger-ui` и `teamcity-server` REST API)
 - `selenoid` (опционально, через профиль)
 - `selenoid-ui` (опционально, через профиль)
 
@@ -28,6 +29,8 @@
 infra/
 ├── docker-compose.yml
 ├── browsers.json
+├── nginx/
+│   └── default.conf
 ├── .env.example
 └── .env
 ```
@@ -65,24 +68,52 @@ docker compose ps
 
 Проверить в браузере:
 - TeamCity: `http://localhost:8111`
-- Swagger UI: `http://localhost:8082`
 
 Если это первый запуск на этой машине, пройти визард TeamCity:
 1. выбрать `Internal (HSQLDB)`
 2. принять лицензию
 3. создать пользователя (для учебного стенда можно `admin/admin`)
 
+Важно: пока не пройден initial setup TeamCity, часть REST/Swagger-эндпоинтов может быть недоступна или требовать авторизацию.
+
 ---
 
-## Запуск с Selenoid
+## Профиль `swagger`
 
-Скачать браузерный образ (один раз):
+Профиль `swagger` включает сервисы:
+- `swagger-ui`
+- `nginx`
+
+Без профиля `swagger` endpoint `http://localhost:8082` не поднимается.
+
+Запуск:
+
+```bash
+cd infra
+docker compose --profile swagger up -d
+docker compose --profile swagger ps
+```
+
+Проверки:
+- Swagger UI: `http://localhost:8082`
+
+---
+
+## Профиль `selenoid`
+
+Профиль `selenoid` включает сервисы:
+- `selenoid`
+- `selenoid-ui`
+
+Без профиля `selenoid` endpoints `http://localhost:4444` и `http://localhost:8080` не поднимаются.
+
+Подготовка (один раз):
 
 ```bash
 docker pull selenoid/vnc_chrome:128.0
 ```
 
-Поднять профиль `selenoid`:
+Запуск:
 
 ```bash
 cd infra
@@ -111,6 +142,16 @@ curl -X POST "http://localhost:4444/wd/hub/session" \
     }
   }'
 ```
+---
+
+## Матрица режимов запуска
+
+| Команда | Что поднимается |
+| --- | --- |
+| `docker compose up -d` | TeamCity server + 2 агента |
+| `docker compose --profile swagger up -d` | TeamCity server + 2 агента + Swagger UI (`swagger-ui` + `nginx`) |
+| `docker compose --profile selenoid up -d` | TeamCity server + 2 агента + Selenoid (`selenoid` + `selenoid-ui`) |
+| `docker compose --profile swagger --profile selenoid up -d` | Все сервисы вместе |
 
 ---
 

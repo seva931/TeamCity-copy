@@ -36,6 +36,7 @@ services:
 
   swagger-ui:
     image: swaggerapi/swagger-ui
+    profiles: ["swagger"]
     environment:
       URL: /app/rest/latest/swagger.json
     depends_on:
@@ -44,6 +45,7 @@ services:
 
   nginx:
     image: nginx:1.27-alpine
+    profiles: ["swagger"]
     ports:
       - "${SWAGGER_UI_PORT:-8082}:80"
     volumes:
