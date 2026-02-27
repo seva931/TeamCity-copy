@@ -13,14 +13,14 @@ import jupiter.annotation.meta.WebTest;
 import org.junit.jupiter.api.Test;
 import ui.pages.BuildTypePage;
 import ui.pages.CreateBuildTypePage;
-import ui.pages.ProjectsPage;
+import ui.pages.ProjectDetailsPage;
 
 import static com.codeborne.selenide.logevents.SelenideLogger.step;
 import static org.junit.jupiter.api.Assertions.*;
 
 @WithProject
 @WebTest
-public class ManageBuildTypeTest extends BaseUITest{
+public class ManageBuildTypeTest extends BaseUITest {
     String buildName;
     CreateBuildTypeRequest createFirstBuildTypeRequest;
 
@@ -33,7 +33,7 @@ public class ManageBuildTypeTest extends BaseUITest{
         });
 
         step("Создать билд конфигурацию", () -> {
-            new ProjectsPage()
+            new ProjectDetailsPage()
                     .open(project.getId())
                     .goToCreateBuildType()
                     .getPage(CreateBuildTypePage.class)
@@ -60,7 +60,7 @@ public class ManageBuildTypeTest extends BaseUITest{
         });
 
         step("Создать билд конфигурацию с тем же именем", () -> {
-            new ProjectsPage()
+            new ProjectDetailsPage()
                     .open(project.getId())
                     .goToCreateBuildType()
                     .getPage(CreateBuildTypePage.class)
@@ -80,8 +80,8 @@ public class ManageBuildTypeTest extends BaseUITest{
     @Description("Негативный тест. Невозможно создать конфигурацию с пустым именем (кнопка создания задизейблена)")
     @Test
     public void userCanNotCreateBuildTypeWithEmptyNameTest(@User CreateUserResponse user,
-                                           @Project ProjectResponse project) {
-        new ProjectsPage()
+                                                           @Project ProjectResponse project) {
+        new ProjectDetailsPage()
                 .open(project.getId())
                 .goToCreateBuildType()
                 .getPage(CreateBuildTypePage.class)

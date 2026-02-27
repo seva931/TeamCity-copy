@@ -7,8 +7,7 @@ import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
 
-
-public class CreateBuildTypePage extends BasePage <CreateBuildTypePage>{
+public class CreateBuildTypePage extends ProjectPage<CreateBuildTypePage> {
     private SelenideElement newBuildConfigurationNameInput = $(By.xpath("//*[contains(text(),'Name')]/..//*/input"));
     private SelenideElement saveChangesButton = $(By.xpath("//*/button[contains(text(),'Create')]"));
     private SelenideElement saveChangesDisabledButton = $(By.xpath("//*/button[@disabled='' and contains(text(),'Create')]"));
