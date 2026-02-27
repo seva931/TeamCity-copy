@@ -9,7 +9,7 @@ import org.openqa.selenium.By;
 import static com.codeborne.selenide.Selenide.$;
 
 @Getter
-public class BuildTypePage extends BasePage<BuildTypePage>{
+public class BuildTypePage extends ProjectPage<BuildTypePage> {
 
     private SelenideElement buildTypeNameInList(String buildName){
         return $(By.xpath(String.format("//*[@aria-selected='true']//*[contains(text(),'%s')]", buildName)));
@@ -33,5 +33,4 @@ public class BuildTypePage extends BasePage<BuildTypePage>{
         buildTypeNameInList(buildName).shouldBe(Condition.visible);
         return this;
     }
-
 }
