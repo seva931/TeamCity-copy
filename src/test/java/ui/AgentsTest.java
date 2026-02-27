@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import ui.pages.AgentsOverviewPage;
 
+import static com.codeborne.selenide.logevents.SelenideLogger.step;
+
 @WebTest
 @ExtendWith(AgentExtension.class)
 public class AgentsTest extends BaseUITest {
@@ -19,12 +21,17 @@ public class AgentsTest extends BaseUITest {
     @Test
     void userCanDisableAgent(@User CreateUserResponse user, Agent[] agents) {
         String agentName = agents[0].getName();
+        AgentsOverviewPage page = new AgentsOverviewPage();
 
-        new AgentsOverviewPage()
-                .open()
-                .disableAgent(agentName, "Disable for maintenance");
+        step("Открыть страницу Agents", page::open);
 
-        boolean isEnabled = AgentSteps.getAgentByName(user, agentName).isEnabled();
+        step("Отключить агента " + agentName, () ->
+                page.disableAgent(agentName, "Disable for maintenance"));
+
+        boolean isEnabled = Boolean.TRUE.equals(
+                step("Проверить через API, что агент не авторизован", () ->
+                        AgentSteps.getAgentByName(user, agentName).isEnabled()));
+
         softly.assertThat(isEnabled)
                 .as("Поле enabled")
                 .isFalse();
@@ -32,19 +39,25 @@ public class AgentsTest extends BaseUITest {
 
     @WithAgent(configKeys = {"teamcity.agent.1.name"})
     @Test
-    void userCanUnauthorizeAgent(
-            @User CreateUserResponse user,
-            Agent[] agent
-    ) {
+    void userCanUnauthorizeAgent(@User CreateUserResponse user, Agent[] agent) {
         String agentName = agent[0].getName();
         String agentPool = agent[0].getPool().getName();
-        new AgentsOverviewPage()
-                .open()
-                .openAgentFromSidebar(agentPool, agentName)
-                .unauthorizeAgent("Unauthorized agent comment");
 
-        boolean isEnabled = AgentSteps.getAgentByName(user, agentName).isAuthorized();
-        softly.assertThat(isEnabled)
+        AgentsOverviewPage page = new AgentsOverviewPage();
+
+        step("Открыть страницу Agents", page::open);
+
+        step("Открыть страницу агента" + agentName + " из пула " + agentPool + " из Sidebar", () ->
+                page.openAgentDetailsPageFromSidebar(agentPool, agentName));
+
+        step("Отключить агента " + agentName, () ->
+                page.unauthorizeAgent("Unauthorized agent comment"));
+
+        boolean isAuthorized = Boolean.TRUE.equals(
+                step("Проверить по API, что агент неавторизован",
+                        () -> AgentSteps.getAgentByName(user, agentName).isAuthorized()));
+
+        softly.assertThat(isAuthorized)
                 .as("Поле authorized")
                 .isFalse();
     }

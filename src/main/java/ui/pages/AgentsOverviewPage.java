@@ -39,7 +39,7 @@ public class AgentsOverviewPage extends BasePage<AgentsOverviewPage> {
         return this;
     }
 
-    public AgentsOverviewPage openAgentFromSidebar(String poolName, String agentName) {
+    public AgentsOverviewPage openAgentDetailsPageFromSidebar(String poolName, String agentName) {
         agentsSidebar.clickAgent(poolName, agentName);
         return this;
     }
