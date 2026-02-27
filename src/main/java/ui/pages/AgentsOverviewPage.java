@@ -1,6 +1,7 @@
 package ui.pages;
 
 import com.codeborne.selenide.ElementsCollection;
+import ui.component.Popup;
 import com.codeborne.selenide.SelenideElement;
 import common.data.AgentsPageTexts;
 
@@ -8,7 +9,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 
-public class AgentsOverviewPage extends BasePage<AgentsOverviewPage> {
+public class AgentsOverviewPage extends AuthorizedPage<AgentsOverviewPage> {
     @Override
     public String url() {
         return "/agents/overview";

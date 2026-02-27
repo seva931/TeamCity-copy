@@ -13,45 +13,78 @@ import jupiter.annotation.meta.WebTest;
 import org.junit.jupiter.api.Test;
 import ui.pages.BuildTypePage;
 import ui.pages.CreateBuildTypePage;
-import ui.pages.ProjectsPage;
+import ui.pages.ProjectDetailsPage;
 
+import static com.codeborne.selenide.logevents.SelenideLogger.step;
 import static org.junit.jupiter.api.Assertions.*;
 
 @WithProject
 @WebTest
-public class ManageBuildTypeTest extends BaseUITest{
+public class ManageBuildTypeTest extends BaseUITest {
+    String buildName;
+    CreateBuildTypeRequest createFirstBuildTypeRequest;
 
     @Description("Позитивный тест. Создание билд конфигурации с корректными данными")
     @Test
     public void userCanCreateBuildTypeTest(@User CreateUserResponse user,
                                            @Project ProjectResponse project) {
+        step("Подготовить билд", () -> {
+            buildName = TestDataGenerator.generateBuildName();
+        });
 
-        String buildName = TestDataGenerator.generateBuildName();
-        new ProjectsPage().open(project.getId()).goToCreateBuildType().getPage(CreateBuildTypePage.class).createBuildTypePage(buildName);
-        new BuildTypePage().open(project.getId(), buildName).checkCreatedBuildType(buildName);
-        boolean isFind = BuildManageSteps.getAllBuildTypes().stream()
-                .anyMatch(build -> build.getName().equals(buildName));
+        step("Создать билд конфигурацию", () -> {
+            new ProjectDetailsPage()
+                    .open(project.getId())
+                    .goToCreateBuildType()
+                    .getPage(CreateBuildTypePage.class)
+                    .createBuildTypePage(buildName)
+                    .getPage(BuildTypePage.class)
+                    .open(project.getId(), buildName)
+                    .checkCreatedBuildType(buildName);
+        });
 
-        assertTrue(isFind);
+        step("Проверка, что билд создан через api", () -> {
+            boolean isFind = BuildManageSteps.getAllBuildTypes().stream()
+                    .anyMatch(build -> build.getName().equals(buildName));
+
+            assertTrue(isFind);
+        });
     }
 
     @Description("Негативный тест. Создание билд конфигурации именем уже созданной конфигурации")
     @Test
     public void userCanNotCreateBuildTypeWithSameNameTest(@User CreateUserResponse user,
                                                           @Project ProjectResponse project) {
-        CreateBuildTypeRequest createFirstBuildTypeRequest = BuildManageSteps.createBuildType(project.getId()).request();
-        new ProjectsPage().open(project.getId()).goToCreateBuildType().getPage(CreateBuildTypePage.class).createBuildTypePage(createFirstBuildTypeRequest.getName()).checkAlert(createFirstBuildTypeRequest.getName(), project.getName());
-        new ProjectsPage().open(project.getId());
-        long count = BuildManageSteps.getAllBuildTypes().stream()
-                .filter(build -> build.getName().equals(createFirstBuildTypeRequest.getName())).count();
+        step("Подготовить билд конфигурацию", () -> {
+            createFirstBuildTypeRequest = BuildManageSteps.createBuildType(project.getId()).request();
+        });
 
-        assertEquals(1, count);
+        step("Создать билд конфигурацию с тем же именем", () -> {
+            new ProjectDetailsPage()
+                    .open(project.getId())
+                    .goToCreateBuildType()
+                    .getPage(CreateBuildTypePage.class)
+                    .createBuildTypePage(createFirstBuildTypeRequest.getName())
+                    .checkAlert(createFirstBuildTypeRequest.getName(), project.getName());
+        });
+
+        step("Проверка, что существует только один билд с таким именем через api", () -> {
+            long count = BuildManageSteps.getAllBuildTypes().stream()
+                    .filter(build -> build.getName().equals(createFirstBuildTypeRequest.getName()))
+                    .count();
+
+            assertEquals(1, count);
+        });
     }
 
     @Description("Негативный тест. Невозможно создать конфигурацию с пустым именем (кнопка создания задизейблена)")
     @Test
     public void userCanNotCreateBuildTypeWithEmptyNameTest(@User CreateUserResponse user,
-                                           @Project ProjectResponse project) {
-        new ProjectsPage().open(project.getId()).goToCreateBuildType().getPage(CreateBuildTypePage.class).checkDisableButtonCreate();
+                                                           @Project ProjectResponse project) {
+        new ProjectDetailsPage()
+                .open(project.getId())
+                .goToCreateBuildType()
+                .getPage(CreateBuildTypePage.class)
+                .checkDisableButtonCreate();
     }
 }
