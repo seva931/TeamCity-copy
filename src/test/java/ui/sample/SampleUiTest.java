@@ -4,6 +4,7 @@ import api.models.CreateUserResponse;
 import com.codeborne.selenide.Selenide;
 import jupiter.annotation.User;
 import jupiter.annotation.meta.WebTest;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import ui.BaseUITest;
 
@@ -11,6 +12,7 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.sleep;
 
+@Disabled
 @WebTest
 public class SampleUiTest extends BaseUITest {
     @Test

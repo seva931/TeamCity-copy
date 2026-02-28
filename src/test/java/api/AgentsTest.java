@@ -28,7 +28,7 @@ public class AgentsTest extends BaseTest {
 
     private static final long NON_EXISTENT_AGENT_ID = 999_999L;
 
-    @WithAgent
+    @WithAgent(configKeys = {"teamcity.agent.1.name"})
     @Test
     void shouldProvideListOfAvailableAgents(@User CreateUserResponse user) {
         AgentsResponse response = new ValidatedCrudRequester<AgentsResponse>(
@@ -48,7 +48,7 @@ public class AgentsTest extends BaseTest {
                 .hasSize(response.getCount());
     }
 
-    @WithAgent
+    @WithAgent(configKeys = {"teamcity.agent.1.name"})
     @ParameterizedTest
     @CsvSource({"false,false", "true,true"})
     void shouldDisableOrEnableAgentById(
@@ -78,7 +78,7 @@ public class AgentsTest extends BaseTest {
                 .isEqualTo(Boolean.parseBoolean(responseText));
     }
 
-    @WithAgent
+    @WithAgent(configKeys = {"teamcity.agent.1.name"})
     @ParameterizedTest
     @CsvSource({"false,false", "true,true"})
     void shouldAuthorizeOrUnauthorizeAgentById(
@@ -110,7 +110,7 @@ public class AgentsTest extends BaseTest {
                 .isEqualTo(Boolean.parseBoolean(responseText));
     }
 
-    @WithAgent
+    @WithAgent(configKeys = {"teamcity.agent.1.name"})
     @Test
     void shouldProvideInfoAboutAgentById(
             @User CreateUserResponse user,
@@ -130,7 +130,7 @@ public class AgentsTest extends BaseTest {
                 .isEqualTo(agents[0]);
     }
 
-    @WithAgent(count = 2)
+    @WithAgent()
     @Test
     void shouldReturnListOfUnauthorizedAgents(
             @User CreateUserResponse user,
@@ -159,7 +159,7 @@ public class AgentsTest extends BaseTest {
                 .doesNotContain(authAgent);
     }
 
-    @WithAgent(count = 2)
+    @WithAgent()
     @Test
     void shouldReturnListOfAuthorizedAgents(
             @User CreateUserResponse user,
@@ -188,7 +188,7 @@ public class AgentsTest extends BaseTest {
                 .doesNotContain(unauthAgent);
     }
 
-    @WithAgent(count = 2)
+    @WithAgent()
     @Test
     void shouldReturnListOfEnabledAgents(
             @User CreateUserResponse user,
@@ -217,7 +217,7 @@ public class AgentsTest extends BaseTest {
                 .doesNotContain(disabledAgent);
     }
 
-    @WithAgent(count = 2)
+    @WithAgent()
     @Test
     void shouldReturnListOfDisabledAgents(
             @User CreateUserResponse user,

@@ -6,6 +6,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum QueryParamData {
-    LOCATOR("locator");
+    LOCATOR("locator"),
+    FIELDS("fields");
     private final String name;
 }

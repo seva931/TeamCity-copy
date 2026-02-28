@@ -2,6 +2,8 @@ package ui.component;
 
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.ClickOptions.usingJavaScript;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 
@@ -25,7 +27,10 @@ public class Popup extends BaseComponent<Popup> {
     }
 
     public Popup submit() {
-        self.$("button[type='submit']").click();
+        SelenideElement submitButton = self.$("button[type='submit']");
+        submitButton.shouldBe(visible, enabled)
+                .scrollTo()
+                .click(usingJavaScript());
         return this;
     }
 

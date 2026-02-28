@@ -26,20 +26,26 @@ import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 @WithBuild
 public class BuildQueueTest extends BaseTest {
 
-    @Disabled
+    //TODO вынести teardown в отдельный метод и @AfterEach
+
     @Test
     void userCanGetInfoAboutAllQueuedBuildWithEmptyQueue(
-            @User CreateUserResponse user
+            @User CreateUserResponse user,
+            @Project ProjectResponse project,
+            @Build CreateBuildTypeResponse build
     ) {
         BuildQueueListResponse response = new CrudRequester(
-                RequestSpecs.authAsUser(user),
+                RequestSpecs.withBasicAuth(user)
+                        .setContentType(ContentType.JSON)
+                        .setAccept(ContentType.JSON)
+                        .addQueryParam(QueryParamData.LOCATOR.getName(), "buildType:(id:" + build.getId() + ")")
+                        .build(),
                 Endpoint.BUILD_QUEUE,
                 ResponseSpecs.requestReturnsOk()
         ).get().extract().as(BuildQueueListResponse.class);
 
-        softly.assertThat(response).isNotNull();
         softly.assertThat(response.getCount()).isZero();
-        softly.assertThat(response.getBuild().size()).isZero();
+        softly.assertThat(response.getBuild()).isEmpty();
     }
 
     @Test
@@ -48,7 +54,6 @@ public class BuildQueueTest extends BaseTest {
             @Project ProjectResponse project,
             @Build CreateBuildTypeResponse build
     ) {
-        AgentSteps.disableAllAgents();
         BuildStepsSteps.addEndlessStep(user, build);
         BuildQueueResponse buildInQueue = BuildQueueSteps.queueBuild(build, user);
         Long idOfBuildInQueue = buildInQueue.getId();
@@ -63,17 +68,17 @@ public class BuildQueueTest extends BaseTest {
                 ResponseSpecs.requestReturnsOk()
         ).get().extract().as(BuildQueueListResponse.class);
 
-        AgentSteps.enableAllAgents();
-
         softly.assertThat(response).isNotNull();
         softly.assertThat(response.getCount()).isNotZero();
         softly.assertThat(response.getBuild())
                 .hasSize(1)
                 .extracting(QueuedBuild::getId, QueuedBuild::getBuildTypeId, QueuedBuild::getState)
                 .contains(tuple(buildInQueue.getId(), buildInQueue.getBuildTypeId(), buildInQueue.getState()));
+
+        //teardown
+        BuildQueueSteps.deleteQueuedBuildQuietly(idOfBuildInQueue, user);
     }
 
-    @Disabled
     @Test
     void userCanQueueRegularBuild(
             @User CreateUserResponse user,
@@ -95,6 +100,9 @@ public class BuildQueueTest extends BaseTest {
         softly.assertThat(allQueuedBuilds.getBuild())
                 .extracting(QueuedBuild::getId, QueuedBuild::getBuildTypeId, QueuedBuild::getState)
                 .contains(tuple(response.getId(), response.getBuildTypeId(), response.getState()));
+
+        //teardown
+        BuildQueueSteps.deleteQueuedBuildQuietly(response.getId(), user);
     }
 
     @Test
@@ -114,5 +122,8 @@ public class BuildQueueTest extends BaseTest {
         ).post(buildQueueResponse.getId(), request);
 
         //TODO проверка в запущеных билдах и в очереди
+
+        //teardown
+        BuildQueueSteps.deleteQueuedBuildQuietly(buildQueueResponse.getId(), user);
     }
 }

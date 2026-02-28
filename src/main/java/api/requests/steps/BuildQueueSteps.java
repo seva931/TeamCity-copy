@@ -21,12 +21,28 @@ public class BuildQueueSteps {
                 .as(BuildQueueResponse.class);
     }
 
-    public static void cancelQueuedBuild(long queueId, CreateUserResponse user) {
+    public static void deleteQueuedBuild(long queueId, CreateUserResponse user) {
         new CrudRequester(
                 RequestSpecs.authAsUser(user),
                 Endpoint.BUILD_QUEUE_ID,
                 ResponseSpecs.noContent()
         ).delete(queueId);
+    }
+
+    public static void deleteQueuedBuildQuietly(long queueId, CreateUserResponse user) {
+        new CrudRequester(
+                RequestSpecs.authAsUser(user),
+                Endpoint.BUILD_QUEUE_ID,
+                ResponseSpecs.deletesQuietly()
+        ).delete(queueId);
+    }
+
+    public static void deleteAllQueuedBuilds(CreateUserResponse user) {
+        new CrudRequester(
+                RequestSpecs.authAsUser(user),
+                Endpoint.BUILD_QUEUE,
+                ResponseSpecs.deletesQuietly()
+        ).delete();
     }
 
     public static BuildQueueListResponse getAllQueuedBuilds(CreateUserResponse user) {

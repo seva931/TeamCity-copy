@@ -20,6 +20,7 @@ public enum Endpoint {
     VCS_ROOTS("/vcs-roots", BaseModel.class, AllVcsRootsResponse.class),
     VCS_ROOTS_ID("/vcs-roots/id:%s", AddNewRootRequest.class, AddNewRootResponse.class),
     AGENTS("/agents", BaseModel.class, AgentsResponse.class),
+    AGENTS_LOCATOR("/agents/%s", BaseModel.class, AgentsResponse.class),
     AGENTS_ID("/agents/id:%s", BaseModel.class, AgentResponse.class),
     AGENTS_ID_ENABLED("/agents/id:%s/enabled", BaseModel.class, BaseModel.class),
     AGENTS_ID_AUTHORIZED("/agents/id:%s/authorized", BaseModel.class, BaseModel.class),

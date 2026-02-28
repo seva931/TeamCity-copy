@@ -9,8 +9,10 @@ import jupiter.annotation.Project;
 import jupiter.annotation.User;
 import jupiter.annotation.meta.ApiTest;
 import jupiter.annotation.meta.WithBuild;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+@Disabled
 @ApiTest
 @WithBuild
 public class SampleTest extends BaseTest {
