@@ -1,6 +1,8 @@
 package ui.pages;
 
 import com.codeborne.selenide.SelenideElement;
+import ui.component.BaseComponent;
+
 import java.time.Duration;
 
 import static com.codeborne.selenide.Condition.text;
@@ -8,7 +10,7 @@ import static com.codeborne.selenide.Condition.visible;
 
 import static com.codeborne.selenide.Selenide.$;
 
-public class AgentsSidebar extends BaseComponent<AgentsSidebar>{
+public class AgentsSidebar extends BaseComponent<AgentsSidebar> {
     public enum SidebarState {
         PINNED,
         COLLAPSED,

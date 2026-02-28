@@ -152,11 +152,9 @@ public class AgentsTest extends BaseTest {
         ).get().extract().as(AgentsResponse.class);
 
         softly.assertThat(response.getAgent())
-                .as("Содержит unauthorized агента")
-                .contains(unauthAgent);
-        softly.assertThat(response.getAgent())
-                .as("Не содержит authorized агента")
-                .doesNotContain(authAgent);
+                .extracting(Agent::getId)
+                .contains(unauthAgent.getId())
+                .doesNotContain(authAgent.getId());
     }
 
     @WithAgent()
@@ -181,41 +179,37 @@ public class AgentsTest extends BaseTest {
         ).get().extract().as(AgentsResponse.class);
 
         softly.assertThat(response.getAgent())
-                .as("Содержит unauthorized агента")
-                .contains(authAgent);
-        softly.assertThat(response.getAgent())
-                .as("Не содержит authorized агента")
-                .doesNotContain(unauthAgent);
+                .extracting(Agent::getId)
+                .contains(authAgent.getId())
+                .doesNotContain(unauthAgent.getId());
     }
 
-    @WithAgent()
-    @Test
-    void shouldReturnListOfEnabledAgents(
-            @User CreateUserResponse user,
-            Agent[] agents) {
-        Agent disabledAgent = agents[0];
-        AgentSteps.disableAgent(disabledAgent.getId());
-        Agent enabledAgent = agents[1];
-        AgentSteps.enableAgent(enabledAgent.getId());
+        @WithAgent()
+        @Test
+        void shouldReturnListOfEnabledAgents(
+                @User CreateUserResponse user,
+                Agent[] agents) {
+            Agent disabledAgent = agents[0];
+            AgentSteps.disableAgent(disabledAgent.getId());
+            Agent enabledAgent = agents[1];
+            AgentSteps.enableAgent(enabledAgent.getId());
 
-        AgentsResponse response = new CrudRequester(
-                RequestSpecs
-                        .withBasicAuth(user)
-                        .addQueryParam("locator", "enabled:true")
-                        .setAccept(ContentType.JSON)
-                        .setContentType(ContentType.JSON)
-                        .build(),
-                Endpoint.AGENTS,
-                ResponseSpecs.requestReturnsOk()
-        ).get().extract().as(AgentsResponse.class);
+            AgentsResponse response = new CrudRequester(
+                    RequestSpecs
+                            .withBasicAuth(user)
+                            .addQueryParam("locator", "enabled:true")
+                            .setAccept(ContentType.JSON)
+                            .setContentType(ContentType.JSON)
+                            .build(),
+                    Endpoint.AGENTS,
+                    ResponseSpecs.requestReturnsOk()
+            ).get().extract().as(AgentsResponse.class);
 
-        softly.assertThat(response.getAgent())
-                .as("Содержит enabled агента")
-                .contains(enabledAgent);
-        softly.assertThat(response.getAgent())
-                .as("Не содержит disabled агента")
-                .doesNotContain(disabledAgent);
-    }
+            softly.assertThat(response.getAgent())
+                    .extracting(Agent::getId)
+                    .contains(enabledAgent.getId())
+                    .doesNotContain(disabledAgent.getId());
+        }
 
     @WithAgent()
     @Test
@@ -239,11 +233,9 @@ public class AgentsTest extends BaseTest {
         ).get().extract().as(AgentsResponse.class);
 
         softly.assertThat(response.getAgent())
-                .as("Содержит disabled агента")
-                .contains(disabledAgent);
-        softly.assertThat(response.getAgent())
-                .as("Не содержит enabled агента")
-                .doesNotContain(enabledAgent);
+                .extracting(Agent::getId)
+                .contains(disabledAgent.getId())
+                .doesNotContain(enabledAgent.getId());
     }
 
     @Test
