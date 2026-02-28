@@ -29,6 +29,10 @@ public class TestDataGenerator {
         return "buildName" + RandomStringUtils.randomAlphabetic(3).toLowerCase();
     }
 
+    public static String generateBuildStepName() {
+        return "buildStepName" + RandomStringUtils.randomAlphabetic(3).toLowerCase();
+    }
+
     public static String generateBuildId(String projectId, String buildName) {
         return projectId + "_" + buildName;
     }

@@ -8,7 +8,7 @@ import api.requests.skeleton.requesters.ValidatedCrudRequester;
 import api.requests.steps.BuildManageSteps;
 import api.specs.RequestSpecs;
 import api.specs.ResponseSpecs;
-import common.data.ApiAtributesOfResponse;
+import common.data.AtributesOfResponse;
 import common.data.RoleId;
 import common.generators.RandomModelGenerator;
 import common.generators.TestDataGenerator;
@@ -60,7 +60,7 @@ public class ManageBuildTypeTest extends BaseTest {
         new CrudRequester(
                 RequestSpecs.authAsUser(user),
                 Endpoint.BUILD_TYPES,
-                ResponseSpecs.badRequestWithErrorText(ApiAtributesOfResponse.BUILD_CONFIGURATION_WITH_SUCH_NAME_ALREADY_EXISTS_ERROR.getFormatedText(createFirstBuildTypeRequest.getName(), project.getName())))
+                ResponseSpecs.badRequestWithErrorText(AtributesOfResponse.BUILD_CONFIGURATION_WITH_SUCH_NAME_ALREADY_EXISTS_ERROR.getFormatedText(createFirstBuildTypeRequest.getName(), project.getName())))
                 .post(createSecondBuildTypeRequest);
 
         boolean isFind = BuildManageSteps.getAllBuildTypes().stream()
@@ -94,7 +94,7 @@ public class ManageBuildTypeTest extends BaseTest {
         new CrudRequester(
                 RequestSpecs.authAsUser(user),
                 Endpoint.BUILD_TYPES_ID,
-                ResponseSpecs.notFoundWithErrorText(ApiAtributesOfResponse.NO_BUILD_TYPE_ERROR.getFormatedText(buildId)))
+                ResponseSpecs.notFoundWithErrorText(AtributesOfResponse.NO_BUILD_TYPE_ERROR.getFormatedText(buildId)))
                 .get(buildId);
     }
 
@@ -156,7 +156,7 @@ public class ManageBuildTypeTest extends BaseTest {
         new CrudRequester(
                 RequestSpecs.authAsUser(user),
                 Endpoint.BUILD_TYPES_ID,
-                ResponseSpecs.notFoundWithErrorText(ApiAtributesOfResponse.NO_BUILD_TYPE_ERROR.getFormatedText(buildId)))
+                ResponseSpecs.notFoundWithErrorText(AtributesOfResponse.NO_BUILD_TYPE_ERROR.getFormatedText(buildId)))
                 .delete(buildId);
     }
 
@@ -176,7 +176,7 @@ public class ManageBuildTypeTest extends BaseTest {
         new CrudRequester(
                 RequestSpecs.authAsUser(user),
                 Endpoint.BUILD_TYPES_ID,
-                ResponseSpecs.forbiddenWithErrorText(ApiAtributesOfResponse.YOU_DONT_HAVE_ENOUGH_PERMISSIONS_ERROR.getFormatedText(project.getId())))
+                ResponseSpecs.forbiddenWithErrorText(AtributesOfResponse.YOU_DONT_HAVE_ENOUGH_PERMISSIONS_ERROR.getFormatedText(project.getId())))
                 .delete(createBuildTypeRequest.getId());
 
         boolean isFindDeletedBuildType = BuildManageSteps.getAllBuildTypes().stream()

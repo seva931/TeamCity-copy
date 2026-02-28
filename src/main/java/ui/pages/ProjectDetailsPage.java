@@ -2,14 +2,13 @@ package ui.pages;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import org.openqa.selenium.By;
 
-import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$x;
 
 public class ProjectDetailsPage extends ProjectPage<ProjectDetailsPage> {
 
-    private SelenideElement createBuildTypeButton = $(By.xpath("(//*[@data-test='ring-dropdown']//*/button[@title='add'])[last()]"));
-    private SelenideElement newBuildConfigurationButton = $(By.xpath("//*/span[contains(text(),'New build configuration')]/../.."));
+    private SelenideElement createBuildTypeButton = $x("(//*[@data-test='ring-dropdown']//*/button[@title='add'])[last()]");
+    private SelenideElement newBuildConfigurationButton = $x("//*/span[contains(text(),'New build configuration')]/../..");
 
     @Override
     public String url() {

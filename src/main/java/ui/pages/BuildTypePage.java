@@ -4,20 +4,19 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import lombok.Getter;
-import org.openqa.selenium.By;
 
-import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$x;
 
 @Getter
 public class BuildTypePage extends ProjectPage<BuildTypePage> {
 
     private SelenideElement buildTypeNameInList(String buildName){
-        return $(By.xpath(String.format("//*[@aria-selected='true']//*[contains(text(),'%s')]", buildName)));
+        return $x(String.format("//*[@aria-selected='true']//*[contains(text(),'%s')]", buildName));
     }
 
     @Override
     public String url() {
-        return "/buildConfiguration/MyProjectId1_NewNAme?buildTypeTab=";
+        return "";
     }
 
     public String url(String projectId, String buildName) {

@@ -8,7 +8,7 @@ import api.requests.steps.AdminSteps;
 import api.requests.steps.AgentSteps;
 import api.specs.RequestSpecs;
 import api.specs.ResponseSpecs;
-import common.data.ApiAtributesOfResponse;
+import common.data.AtributesOfResponse;
 import common.data.RoleId;
 import io.restassured.http.ContentType;
 import jupiter.annotation.User;
@@ -258,7 +258,7 @@ public class AgentsTest extends BaseTest {
         assertThat(response.getErrors())
                 .hasSize(1)
                 .filteredOn(e ->
-                        e.getMessage().equals(ApiAtributesOfResponse
+                        e.getMessage().equals(AtributesOfResponse
                                 .NO_AGENT_CAN_BE_FOUND_BY_ID
                                 .getFormatedText(NON_EXISTENT_AGENT_ID)))
                 .hasSize(1);
@@ -282,7 +282,7 @@ public class AgentsTest extends BaseTest {
         assertThat(response.getErrors())
                 .hasSize(1)
                 .filteredOn(e ->
-                        e.getMessage().equals(ApiAtributesOfResponse
+                        e.getMessage().equals(AtributesOfResponse
                                 .YOU_DO_NOT_HAVE_ENABLE_DISABLE_AGENTS_ASSOCIATED_WITH_PROJECT_PERMISSION_FOR_POOL_DEFAULT
                                 .getMessage()))
                 .hasSize(1);

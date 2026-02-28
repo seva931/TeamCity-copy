@@ -6,7 +6,7 @@ import api.requests.skeleton.requesters.CrudRequester;
 import api.requests.skeleton.requesters.ValidatedCrudRequester;
 import api.specs.RequestSpecs;
 import api.specs.ResponseSpecs;
-import common.data.ApiAtributesOfResponse;
+import common.data.AtributesOfResponse;
 import common.generators.RandomModelGenerator;
 import io.restassured.http.ContentType;
 import jupiter.annotation.Project;
@@ -146,7 +146,7 @@ public class ProjectManagementTest extends BaseTest {
                 .isNotNull()
                 .hasSize(1)
                 .filteredOn(e -> e.getMessage().equals(
-                        ApiAtributesOfResponse.NO_PROJECT_FOUND_BY_ID_ERROR.getFormatedText(
+                        AtributesOfResponse.NO_PROJECT_FOUND_BY_ID_ERROR.getFormatedText(
                                 NOT_EXISTS_ID,
                                 NOT_EXISTS_ID
                         )))
@@ -238,7 +238,7 @@ public class ProjectManagementTest extends BaseTest {
                 .isNotNull()
                 .hasSize(1)
                 .filteredOn(e -> e.getMessage().equals(
-                        ApiAtributesOfResponse.NO_PROJECT_FOUND_BY_ID_ERROR.getFormatedText(
+                        AtributesOfResponse.NO_PROJECT_FOUND_BY_ID_ERROR.getFormatedText(
                                 NOT_EXISTS_ID,
                                 NOT_EXISTS_ID
                         )))
