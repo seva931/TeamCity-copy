@@ -57,7 +57,7 @@ services:
         condition: service_started
 
   selenoid:
-    image: aerokube/selenoid:latest-release
+    image: aerokube/selenoid:1.11.3
     profiles: ["selenoid"]
     ports:
       - "${SELENOID_PORT:-4444}:4444"
@@ -67,7 +67,7 @@ services:
     command: ["-limit", "5", "-container-network", "teamcity-net", "-conf", "/etc/selenoid/browsers.json"]
 
   selenoid-ui:
-    image: aerokube/selenoid-ui:latest-release
+    image: aerokube/selenoid-ui:1.10.11
     profiles: ["selenoid"]
     ports:
       - "${SELENOID_UI_PORT:-8080}:8080"
