@@ -15,6 +15,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
       - name: Download asset
         env:
           GH_TOKEN: ${{ github.token }}
@@ -49,9 +56,26 @@ jobs:
             done
           '
 
+      - name: Check Java and Maven
+        run: |
+          java -version
+          javac -version
+          mvn -version
+
       - name: Run tests
         run: |
           mvn test -Pselenoid 
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-test-reports
+          path: |
+            target/surefire-reports
+            target/failsafe-reports
+            target/site
+          if-no-files-found: ignore
 
       - name: Show TeamCity logs
         if: failure()
