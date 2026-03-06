@@ -1,0 +1,42 @@
+name: run-tests.yml
+on:
+  workflow_dispatch:
+  push:
+    branches: [ create-teamcity-profile ]
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      TEAMCITY_DATA_TAG: teamcity-data
+      TEAMCITY_DATA_ASSET: teamcity-data.tar.gz
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$TEAMCITY_DATA_TAG" \
+            --pattern "$TEAMCITY_DATA_ASSET" \
+            --output "$TEAMCITY_DATA_ASSET"
+
+      - name: Extract
+        run: tar -xzf "$TEAMCITY_DATA_ASSET"
+
+      - name: Start TeamCity
+        run: docker compose up -d
+
+      - name: Wait for TeamCity
+        run: |
+          timeout 600 bash -c '
+            until curl -fsS http://localhost:8111/mnt/get/currentState > /dev/null; do
+              sleep 5
+            done
+          '
+
+      - name: Stop
+        if: always()
+        run: docker compose down -v
