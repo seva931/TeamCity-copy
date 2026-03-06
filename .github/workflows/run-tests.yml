@@ -24,7 +24,8 @@ jobs:
             --output "$TEAMCITY_DATA_ASSET"
 
       - name: Extract
-        run: tar -xzf "$TEAMCITY_DATA_ASSET" -C infra
+        run: |
+          tar -xzf "$TEAMCITY_DATA_ASSET" -C infra
           ls -la infra
           ls -la infra/teamcity-data
 
