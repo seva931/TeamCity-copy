@@ -26,6 +26,11 @@ jobs:
       - name: Extract
         run: tar -xzf "$TEAMCITY_DATA_ASSET" -C infra
 
+      - name: Fix permissions
+        run: |
+          sudo chown -R 1000:1000 infra/teamcity-data
+          chmod -R u+rwX infra/teamcity-data
+
       - name: Set env
         working-directory: ./infra
         run: cp .env.example .env
