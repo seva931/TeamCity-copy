@@ -27,7 +27,8 @@ jobs:
         run: tar -xzf "$TEAMCITY_DATA_ASSET"
 
       - name: Start TeamCity
-        run: docker compose up -d
+        working-directory: ./infra
+        run: docker compose -f up -d
 
       - name: Wait for TeamCity
         run: |
@@ -38,5 +39,6 @@ jobs:
           '
 
       - name: Stop
+        working-directory: ./infra
         if: always()
         run: docker compose down -v
