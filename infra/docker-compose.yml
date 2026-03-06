@@ -4,7 +4,7 @@ services:
     ports:
       - "${TEAMCITY_PORT:-8111}:8111"
     volumes:
-      - teamcity_datadir:/data/teamcity_server/datadir
+      - ./teamcity-data:/data/teamcity_server/datadir
       - teamcity_logs:/opt/teamcity/logs
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8111/mnt/get/currentState >/dev/null || exit 1"]
@@ -58,6 +58,8 @@ services:
 
   selenoid:
     image: aerokube/selenoid:1.11.3
+    environment:
+      DOCKER_API_VERSION: "1.44"
     profiles: ["selenoid"]
     ports:
       - "${SELENOID_PORT:-4444}:4444"
@@ -80,8 +82,6 @@ networks:
     name: teamcity-net
 
 volumes:
-  teamcity_datadir:
-    name: teamcity_datadir
   teamcity_logs:
     name: teamcity_logs
   teamcity_agent_1_conf:
