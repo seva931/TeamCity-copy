@@ -26,6 +26,10 @@ jobs:
       - name: Extract
         run: tar -xzf "$TEAMCITY_DATA_ASSET"
 
+      - name: Set env
+        working-directory: ./infra
+        run: cp .env.example .env
+
       - name: Start TeamCity
         working-directory: ./infra
         run: docker compose up -d
