@@ -15,7 +15,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      TEAMCITY_DATA_URL: ${{ vars.TEAMCITY_DATA_URL }}
+      TEAMCITY_DATA_TAG: teamcity-data
+      TEAMCITY_DATA_ASSET: teamcity-data.tar.gz
 
     steps:
       - uses: actions/checkout@v4
@@ -27,12 +28,24 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Make scripts executable
-        run: chmod +x infra/scripts/*.sh
+      - name: Download TeamCity data asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$TEAMCITY_DATA_TAG" \
+            --repo seva931/TeamCity \
+            --pattern "$TEAMCITY_DATA_ASSET" \
+            --output "$TEAMCITY_DATA_ASSET"
 
-      - name: Restore TeamCity data
-        working-directory: ./infra
-        run: ./scripts/restore-teamcity-data.sh "$TEAMCITY_DATA_URL"
+      - name: Extract TeamCity data
+        run: |
+          tar -xzf "$TEAMCITY_DATA_ASSET" -C infra
+          ls -la infra
+          ls -la infra/teamcity-data
+
+      - name: Fix permissions
+        run: |
+          sudo chown -R 1000:1000 infra/teamcity-data
 
       - name: Set env
         working-directory: ./infra
@@ -56,12 +69,18 @@ jobs:
       - name: Run tests
         run: mvn clean test -Pselenoid
 
-      - name: Upload allure results
+      - name: Generate Allure report
+        if: always()
+        run: mvn allure:report
+
+      - name: Upload Allure artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: allure-results
-          path: allure-results
+          name: allure-artifacts
+          path: |
+            allure-results
+            target/site/allure-maven-plugin
           if-no-files-found: ignore
 
       - name: Upload test reports
@@ -75,45 +94,14 @@ jobs:
             target/site
           if-no-files-found: ignore
 
-      - name: Show TeamCity logs
-        if: failure()
-        working-directory: ./infra
-        run: docker compose logs teamcity-server
-
-      - name: Stop services
-        if: always()
-        working-directory: ./infra
-        run: docker compose down -v
-
-  publish-allure:
-    needs: smoke
-    if: ${{ always() && github.event_name != 'pull_request' }}
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-          cache: maven
-
-      - name: Download allure results
-        uses: actions/download-artifact@v4
-        with:
-          name: allure-results
-          path: allure-results
-
-      - name: Generate Allure report
-        run: mvn allure:report
-
       - name: Publish to gh-pages
+        if: always() && github.event_name != 'pull_request'
         run: |
+          if [ ! -d "target/site/allure-maven-plugin" ]; then
+            echo "Allure report directory not found, skip publish"
+            exit 0
+          fi
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
@@ -125,5 +113,15 @@ jobs:
           git rm -rf . || true
           cp -R .publish/* .
           git add .
-          git commit -m "Publish Allure report for ${GITHUB_SHA}"
+          git commit -m "Publish Allure report for ${GITHUB_SHA}" || echo "Nothing to commit"
           git push origin HEAD:gh-pages --force
+
+      - name: Show TeamCity logs
+        if: failure()
+        working-directory: ./infra
+        run: docker compose logs teamcity-server
+
+      - name: Stop services
+        if: always()
+        working-directory: ./infra
+        run: docker compose down -v
