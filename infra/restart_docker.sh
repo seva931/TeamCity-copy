@@ -40,3 +40,22 @@ fi
 
 echo ">>> Запуск Docker Compose ${PROFILE_ARGS[*]}"
 docker compose "${PROFILE_ARGS[@]}" up -d
+
+echo ">>> Проверка запущенных контейнеров"
+docker compose ps
+
+if [[ " $* " == *" selenoid "* ]]; then
+  echo ">>> Ожидание Selenoid"
+  for i in {1..30}; do
+    if curl -fsS http://selenoid:4444/status >/dev/null; then
+      echo ">>> Selenoid доступен"
+      exit 0
+    fi
+    echo ">>> Selenoid еще не готов, попытка $i/30"
+    sleep 3
+  done
+
+  echo ">>> Selenoid не поднялся"
+  docker compose logs selenoid || true
+  exit 1
+fi
