@@ -72,12 +72,14 @@ jobs:
         run: |
           mvn allure:report
 
-      - name: Upload Allure report
+      - name: Upload Allure artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: allure-report
-          path: target/site/allure-maven-plugin
+          name: allure-artifacts
+          path: |
+            allure-results
+            target/site/allure-maven-plugin
           if-no-files-found: ignore
 
       - name: Stop
