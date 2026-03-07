@@ -44,9 +44,16 @@ jobs:
         working-directory: ./infra
         run: cp .env.example .env
 
-      - name: Start TeamCity
-        working-directory: ./infra
-        run: docker compose up -d
+      - name: Cache Maven repository # Кэширование репозитория Maven для ускорения сборки
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Set up services # Настройка сервисов, например, запуск Docker контейнеров
+        run: cd infra && bash restart_docker.sh && cd ..
 
       - name: Wait for TeamCity
         run: |
