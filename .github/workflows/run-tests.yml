@@ -2,7 +2,7 @@ name: run-tests.yml
 on:
   workflow_dispatch:
   push:
-    branches: [ create-teamcity-profile ]
+    branches: [ create-teamcity-profile, allure-report ]
   pull_request:
 
 jobs:
