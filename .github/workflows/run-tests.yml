@@ -67,15 +67,17 @@ jobs:
         run: |
           mvn test -Pselenoid 
 
-      - name: Upload test reports
+      - name: Generate Allure report
+        if: always()
+        run: |
+          mvn allure:report
+
+      - name: Upload Allure report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: maven-test-reports
-          path: |
-            target/surefire-reports
-            target/failsafe-reports
-            target/site
+          name: allure-report
+          path: target/site/allure-maven-plugin
           if-no-files-found: ignore
 
       - name: Stop
