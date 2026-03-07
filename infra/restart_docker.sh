@@ -47,7 +47,7 @@ docker compose ps
 if [[ " $* " == *" selenoid "* ]]; then
   echo ">>> Ожидание Selenoid"
   for i in {1..30}; do
-    if curl -fsS http://selenoid:4444/status >/dev/null; then
+    if curl -fsS http://localhost:4444/status >/dev/null; then
       echo ">>> Selenoid доступен"
       exit 0
     fi
