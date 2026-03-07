@@ -71,10 +71,13 @@ jobs:
               sleep 10
             done
           '
+      - name: Clean Allure dirs
+        run: |
+          rm -rf allure-results target/site/allure-maven-plugin
 
       - name: Run tests
         run: |
-          mvn test -Pselenoid 
+          mvn clean test -Pselenoid 
 
       - name: Generate Allure report
         if: always()
@@ -96,7 +99,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
-        if: always() && github.event_name != 'pull_request'
+        if: always() && github.event_name != 'pull_request' && hashFiles('target/site/allure-maven-plugin/index.html') != ''
         uses: actions/upload-pages-artifact@v3
         with:
           path: target/site/allure-maven-plugin
