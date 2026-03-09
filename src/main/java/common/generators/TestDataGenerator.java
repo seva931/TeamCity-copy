@@ -13,18 +13,6 @@ public class TestDataGenerator {
         return "pass_" + UUID.randomUUID();
     }
 
-    public static String generateUsername(String prefix) {
-        return prefix + "_" + UUID.randomUUID();
-    }
-
-    public static String generateProjectID() {
-        return "project_id" + RandomStringUtils.randomAlphabetic(3).toLowerCase();
-    }
-
-    public static String generateProjectName() {
-        return "project_name" + RandomStringUtils.randomAlphabetic(3).toLowerCase();
-    }
-
     public static String generateBuildName() {
         return "buildName" + RandomStringUtils.randomAlphabetic(3).toLowerCase();
     }
@@ -33,14 +21,11 @@ public class TestDataGenerator {
         return "buildStepName" + RandomStringUtils.randomAlphabetic(3).toLowerCase();
     }
 
-    public static String generateBuildId(String projectId, String buildName) {
-        return projectId + "_" + buildName;
-    }
     public static String generateBuildId() {
         return "project_id" + RandomStringUtils.randomAlphabetic(3).toLowerCase();
     }
 
-    public static String generateVCSName(){
+    public static String generateVCSName() {
         return RandomStringUtils.randomAlphabetic(5);
     }
 

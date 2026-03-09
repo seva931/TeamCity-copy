@@ -1,12 +1,6 @@
 package api.requests.steps;
 
-import api.models.AddBuildStepRequest;
-import api.models.AddBuildStepResponse;
-import api.models.BuildStepProperties;
-import api.models.BuildStepProperty;
-import api.models.BuildStepsResponse;
-import api.models.CreateBuildTypeResponse;
-import api.models.CreateUserResponse;
+import api.models.*;
 import api.requests.skeleton.Endpoint;
 import api.requests.skeleton.requesters.CrudRequester;
 import api.requests.skeleton.requesters.ValidatedCrudRequester;
@@ -30,27 +24,6 @@ public class BuildStepsSteps {
                 Endpoint.BUILD_TYPES_ID_STEPS,
                 ResponseSpecs.ok()
         ).get(buildId);
-    }
-
-    @Step("Создать шаг типа '{stepType}' для build type '{build.id}'")
-    public static AddBuildStepResponse createStep(
-            CreateUserResponse user,
-            CreateBuildTypeResponse build,
-            String stepType,
-            List<BuildStepProperty> props) {
-
-        String buildId = build.getId();
-        AddBuildStepRequest request = RandomModelGenerator.generate(AddBuildStepRequest.class);
-        request.setType(stepType);
-        BuildStepProperties properties = BuildStepProperties.builder().property(props).build();
-        request.setProperties(properties);
-
-        return new CrudRequester(
-                RequestSpecs.authAsUser(user),
-                Endpoint.BUILD_TYPES_ID_STEPS,
-                ResponseSpecs.ok()
-        ).post(buildId, request)
-                .extract().as(AddBuildStepResponse.class);
     }
 
     @Step("Создать стандартный шаг для build type '{build.id}'")
@@ -90,29 +63,6 @@ public class BuildStepsSteps {
                 ResponseSpecs.ok()
         ).post(build.getId(), request)
                 .extract().as(AddBuildStepResponse.class);
-    }
-
-    @Step("Создать шаг для build type '{buildId}' по готовому request")
-    public static AddBuildStepResponse createStep(
-            CreateUserResponse user,
-            AddBuildStepRequest request,
-            String buildId) {
-
-        return new CrudRequester(
-                RequestSpecs.authAsUser(user),
-                Endpoint.BUILD_TYPES_ID_STEPS,
-                ResponseSpecs.ok()
-        ).post(buildId, request)
-                .extract().as(AddBuildStepResponse.class);
-    }
-
-    @Step("Удалить шаг '{stepId}' у build type '{build.id}'")
-    public static void deleteStepQuietly(String stepId, CreateUserResponse user, CreateBuildTypeResponse build) {
-        new CrudRequester(
-                RequestSpecs.authAsUser(user),
-                Endpoint.BUILD_TYPES_ID_STEPS_ID,
-                ResponseSpecs.deletesQuietly()
-        ).delete(build.getId(), stepId);
     }
 
     @Step("Добавить endless step для build type '{build.id}'")

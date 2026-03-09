@@ -1,15 +1,6 @@
 package api.requests.steps;
 
-import api.models.AgentsResponse;
-import api.models.CreateBuildTypeRequest;
-import api.models.CreateBuildTypeResponse;
-import api.models.CreateProjectRequest;
-import api.models.CreateUserRequest;
-import api.models.CreateUserResponse;
-import api.models.GetUsersResponse;
-import api.models.PermissionsResponse;
-import api.models.ProjectResponse;
-import api.models.Role;
+import api.models.*;
 import api.requests.skeleton.Endpoint;
 import api.requests.skeleton.requesters.CrudRequester;
 import api.requests.skeleton.requesters.ValidatedCrudRequester;
@@ -78,38 +69,6 @@ public class AdminSteps {
                 .build();
     }
 
-    @Step("Создать пользователя с ролью {role}")
-    public static CreateUserResponse createUserWithRole(RoleId role) {
-        CreateUserRequest request = CreateUserRequest.withRole(role);
-
-        CreateUserResponse response = new ValidatedCrudRequester<CreateUserResponse>(
-                RequestSpecs.adminSpec(),
-                Endpoint.USERS,
-                ResponseSpecs.requestReturnsOk()
-        ).post(request);
-
-        return CreateUserResponse.builder()
-                .username(response.getUsername())
-                .id(response.getId())
-                .roles(response.getRoles())
-                .testData(CreateUserResponse.TestData.builder()
-                        .password(request.getPassword()).build())
-                .build();
-    }
-
-    @Step("Создать пользователя администратором: {username}")
-    public static CreateUserRequest createUserByAdmin(String username, String password) {
-        CreateUserRequest createUserRequest = new CreateUserRequest(username, password);
-
-        new CrudRequester(
-                RequestSpecs.adminSpec(),
-                Endpoint.USERS,
-                ResponseSpecs.requestReturnsOk())
-                .post(createUserRequest);
-
-        return createUserRequest;
-    }
-
     @Step("Удалить пользователя по id: {id}")
     public static void deleteUser(long id) {
         new CrudRequester(
@@ -133,15 +92,6 @@ public class AdminSteps {
                 .get(id)
                 .extract()
                 .as(PermissionsResponse.class);
-    }
-
-    @Step("Получить пользователя по username: {username}")
-    public static CreateUserResponse getUserInfoByUsername(String username) {
-        return new ValidatedCrudRequester<CreateUserResponse>(
-                RequestSpecs.adminSpec(),
-                Endpoint.USERS_USERNAME,
-                ResponseSpecs.requestReturnsOk())
-                .get(username);
     }
 
     @Step("Получить id дефолтного агента")

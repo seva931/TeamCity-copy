@@ -13,16 +13,6 @@ import io.qameta.allure.Step;
 import io.restassured.http.ContentType;
 
 public class AgentSteps {
-
-    @Step("Получить список агентов от имени пользователя: {user.username}")
-    public static AgentsResponse getAgents(CreateUserResponse user) {
-        return new ValidatedCrudRequester<AgentsResponse>(
-                RequestSpecs.authAsUser(user),
-                Endpoint.AGENTS,
-                ResponseSpecs.requestReturnsOk()
-        ).get();
-    }
-
     @Step("Получить список агентов от имени администратора")
     public static AgentsResponse getAgents() {
         return new ValidatedCrudRequester<AgentsResponse>(
@@ -38,19 +28,6 @@ public class AgentSteps {
                 RequestSpecs.withAdminBasicAuth()
                         .addQueryParam(QueryParamData.LOCATOR.getName(), "defaultFilter:false,authorized:any,enabled:any,connected:any")
                         .addQueryParam(QueryParamData.FIELDS.getName(), "agent(id,name,typeId,enabled,connected,authorized,ip,pool(id,name),build(id),environment,)")
-                        .setAccept(ContentType.JSON)
-                        .setContentType(ContentType.JSON)
-                        .build(),
-                Endpoint.AGENTS,
-                ResponseSpecs.requestReturnsOk()
-        ).get();
-    }
-
-    @Step("Получить всех включенных агентов")
-    public static AgentsResponse getAllEnabledAgents() {
-        return new ValidatedCrudRequester<AgentsResponse>(
-                RequestSpecs.withAdminBasicAuth()
-                        .addQueryParam(QueryParamData.LOCATOR.getName(), "enabled:true")
                         .setAccept(ContentType.JSON)
                         .setContentType(ContentType.JSON)
                         .build(),

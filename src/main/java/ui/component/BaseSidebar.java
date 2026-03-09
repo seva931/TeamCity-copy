@@ -16,15 +16,4 @@ public abstract class BaseSidebar<T extends BaseSidebar<T>> extends BaseComponen
         super($("[data-test='sidebar']"));
     }
 
-    @SuppressWarnings("unchecked")
-    public T clickToggleSidebarButton() {
-        toggleSidebarButton.click();
-        return (T) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    public T clickSearchButton() {
-        searchButton.click();
-        return (T) this;
-    }
 }

@@ -27,27 +27,24 @@ public class ResponseSpecs {
                 .expectStatusCode(HttpStatus.SC_NO_CONTENT)
                 .build();
     }
+
     public static ResponseSpecification created() {
         return new ResponseSpecBuilder()
                 .expectStatusCode(HttpStatus.SC_CREATED)
                 .build();
     }
+
     public static ResponseSpecification notFound() {
         return new ResponseSpecBuilder()
                 .expectStatusCode(HttpStatus.SC_NOT_FOUND)
                 .build();
     }
+
     public static ResponseSpecification InternalServerError() {
         return new ResponseSpecBuilder()
                 .expectStatusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR)
                 .build();
     }
-    public static ResponseSpecification successDelete() {
-        return new ResponseSpecBuilder()
-                .expectStatusCode(HttpStatus.SC_NO_CONTENT)
-                .build();
-    }
-
 
     public static ResponseSpecification notFoundWithErrorText(String errorText) {
         return new ResponseSpecBuilder()
@@ -74,17 +71,6 @@ public class ResponseSpecs {
     public static ResponseSpecification badRequest() {
         return new ResponseSpecBuilder()
                 .expectStatusCode(HttpStatus.SC_BAD_REQUEST)
-                .build();
-    }
-
-    public static ResponseSpecification unauthorized() {
-        return new ResponseSpecBuilder()
-                .expectStatusCode(HttpStatus.SC_UNAUTHORIZED)
-                .build();
-    }
-    public static ResponseSpecification notAcceptable() {
-        return new ResponseSpecBuilder()
-                .expectStatusCode(HttpStatus.SC_NOT_ACCEPTABLE)
                 .build();
     }
 
