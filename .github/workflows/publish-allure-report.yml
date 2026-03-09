@@ -1,0 +1,154 @@
+name: publish-allure-report
+
+on:
+  workflow_run:
+    workflows: ["run-tests"]
+    types:
+      - completed
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.event != 'pull_request' }}
+
+    permissions:
+      actions: read
+      contents: write
+
+    env:
+      REPORT_BRANCH: gh-pages
+      REPORTS_DIR: reports
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Download allure-results artifact from run-tests
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const runId = context.payload.workflow_run.id;
+
+            const artifactsResponse = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+            });
+
+            const artifact = artifactsResponse.data.artifacts.find(a => a.name === 'allure-results');
+
+            if (!artifact) {
+              core.setFailed(`Artifact "allure-results" not found for workflow run ${runId}`);
+              return;
+            }
+
+            const download = await github.rest.actions.downloadArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: artifact.id,
+              archive_format: 'zip',
+            });
+
+            const outDir = process.env.RUNNER_TEMP;
+            const outFile = path.join(outDir, 'allure-results.zip');
+            fs.writeFileSync(outFile, Buffer.from(download.data));
+
+      - name: Unzip allure-results
+        run: |
+          rm -rf allure-results
+          mkdir -p allure-results
+          unzip -o "${{ runner.temp }}/allure-results.zip" -d allure-results
+
+      - name: Prepare Allure executor metadata
+        run: |
+          REPORT_DATE="$(date -u +'%Y-%m-%d_%H-%M-%S')"
+          SOURCE_RUN_NUMBER="${{ github.event.workflow_run.run_number }}"
+          SOURCE_RUN_ID="${{ github.event.workflow_run.id }}"
+          SOURCE_SHA="${{ github.event.workflow_run.head_sha }}"
+          SOURCE_BRANCH="${{ github.event.workflow_run.head_branch }}"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}"
+
+          echo "REPORT_DATE=$REPORT_DATE" >> "$GITHUB_ENV"
+          echo "SOURCE_RUN_NUMBER=$SOURCE_RUN_NUMBER" >> "$GITHUB_ENV"
+          echo "REPORT_PATH=${REPORTS_DIR}/${REPORT_DATE}_run-${SOURCE_RUN_NUMBER}" >> "$GITHUB_ENV"
+
+          cat > allure-results/executor.json <<EOF
+          {
+            "reportName": "Allure Report #${SOURCE_RUN_NUMBER} (${REPORT_DATE})",
+            "buildOrder": ${SOURCE_RUN_NUMBER},
+            "name": "GitHub Actions",
+            "type": "github",
+            "buildName": "run-tests #${SOURCE_RUN_NUMBER}",
+            "buildUrl": "${RUN_URL}"
+          }
+          EOF
+
+          cat > allure-results/environment.properties <<EOF
+          Branch=${SOURCE_BRANCH}
+          Commit=${SOURCE_SHA}
+          SourceRunId=${SOURCE_RUN_ID}
+          SourceRunNumber=${SOURCE_RUN_NUMBER}
+          EOF
+
+      - name: Generate Allure report
+        run: mvn -B allure:report
+
+      - name: Publish report to gh-pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+
+          TMP_DIR="$(mktemp -d)"
+          REPO_URL="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          cd "$TMP_DIR"
+          git init
+          git remote add origin "$REPO_URL"
+
+          if git ls-remote --exit-code --heads origin "$REPORT_BRANCH" >/dev/null 2>&1; then
+            git fetch --depth 1 origin "$REPORT_BRANCH"
+            git checkout -B "$REPORT_BRANCH" FETCH_HEAD
+          else
+            git checkout --orphan "$REPORT_BRANCH"
+          fi
+
+          mkdir -p "$REPORT_PATH"
+          mkdir -p latest
+
+          rm -rf latest/*
+          cp -R "${GITHUB_WORKSPACE}/target/site/allure-maven-plugin/." latest/
+          cp -R "${GITHUB_WORKSPACE}/target/site/allure-maven-plugin/." "$REPORT_PATH/"
+
+          cat > index.html <<EOF
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta http-equiv="refresh" content="0; url=./latest/">
+              <title>Allure Reports</title>
+            </head>
+            <body>
+              <p>Redirecting to <a href="./latest/">latest report</a>...</p>
+            </body>
+          </html>
+          EOF
+
+          touch .nojekyll
+
+          git add .
+          git commit -m "docs: publish Allure report #${SOURCE_RUN_NUMBER} (${REPORT_DATE})" || echo "No changes to commit"
+          git push origin "$REPORT_BRANCH"

@@ -9,13 +9,8 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
 
-    environment:
-      name: github-pages
-
     permissions:
       contents: read
-      pages: write
-      id-token: write
 
     env:
       TEAMCITY_DATA_TAG: teamcity-data
@@ -69,7 +64,6 @@ jobs:
         run: |
           cd infra
           bash restart_docker.sh selenoid
-          cd ..
 
       - name: Wait for TeamCity
         run: |
@@ -89,33 +83,13 @@ jobs:
       - name: Run UI tests
         run: mvn -B test -Pselenoid -Dgroups=web
 
-      - name: Generate Allure report
-        if: always()
-        run: mvn -B allure:report
-
-      - name: Upload Allure artifacts
+      - name: Upload Allure results artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: allure-artifacts
-          path: |
-            allure-results
-            target/site/allure-maven-plugin
+          name: allure-results
+          path: allure-results
           if-no-files-found: ignore
-
-      - name: Configure Pages
-        if: always() && github.event_name != 'pull_request'
-        uses: actions/configure-pages@v5
-
-      - name: Upload Pages artifact
-        if: always() && github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: target/site/allure-maven-plugin
-
-      - name: Deploy to GitHub Pages
-        if: always() && github.event_name != 'pull_request'
-        uses: actions/deploy-pages@v4
 
       - name: Stop services
         if: always()
