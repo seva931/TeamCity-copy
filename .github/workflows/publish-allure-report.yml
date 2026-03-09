@@ -5,15 +5,20 @@ on:
     workflows: ["run-tests"]
     types:
       - completed
+  push:
+    branches:
+      - refactor/ci-cd-report-branch
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.event != 'pull_request' }}
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.event != 'pull_request' }}
 
     permissions:
       actions: read
       contents: write
+      pages: write
+      id-token: write
 
     env:
       REPORT_BRANCH: gh-pages
@@ -30,38 +35,71 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Download allure-results artifact from run-tests
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const fs = require('fs');
-            const path = require('path');
+      - name: Resolve source run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
 
-            const runId = context.payload.workflow_run.id;
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "SOURCE_RUN_ID=${{ github.event.workflow_run.id }}" >> "$GITHUB_ENV"
+            echo "SOURCE_RUN_NUMBER=${{ github.event.workflow_run.run_number }}" >> "$GITHUB_ENV"
+            echo "SOURCE_BRANCH=${{ github.event.workflow_run.head_branch }}" >> "$GITHUB_ENV"
+            echo "SOURCE_SHA=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_ENV"
+            echo "SOURCE_RUN_URL=${{ github.event.workflow_run.html_url }}" >> "$GITHUB_ENV"
+            exit 0
+          fi
 
-            const artifactsResponse = await github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: runId,
-            });
+          BRANCH="${GITHUB_REF_NAME}"
+          SHA="${GITHUB_SHA}"
 
-            const artifact = artifactsResponse.data.artifacts.find(a => a.name === 'allure-results');
+          for i in {1..60}; do
+            RUN_JSON="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/workflows/run-tests.yml/runs?branch=${BRANCH}&per_page=20")"
 
-            if (!artifact) {
-              core.setFailed(`Artifact "allure-results" not found for workflow run ${runId}`);
-              return;
-            }
+            MATCHED_RUN="$(echo "$RUN_JSON" | jq -c --arg SHA "$SHA" '.workflow_runs[] | select(.head_sha == $SHA and .status == "completed")' | head -n 1)"
 
-            const download = await github.rest.actions.downloadArtifact({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              artifact_id: artifact.id,
-              archive_format: 'zip',
-            });
+            if [ -n "$MATCHED_RUN" ]; then
+              echo "SOURCE_RUN_ID=$(echo "$MATCHED_RUN" | jq -r '.id')" >> "$GITHUB_ENV"
+              echo "SOURCE_RUN_NUMBER=$(echo "$MATCHED_RUN" | jq -r '.run_number')" >> "$GITHUB_ENV"
+              echo "SOURCE_BRANCH=$(echo "$MATCHED_RUN" | jq -r '.head_branch')" >> "$GITHUB_ENV"
+              echo "SOURCE_SHA=$(echo "$MATCHED_RUN" | jq -r '.head_sha')" >> "$GITHUB_ENV"
+              echo "SOURCE_RUN_URL=$(echo "$MATCHED_RUN" | jq -r '.html_url')" >> "$GITHUB_ENV"
+              exit 0
+            fi
 
-            const outDir = process.env.RUNNER_TEMP;
-            const outFile = path.join(outDir, 'allure-results.zip');
-            fs.writeFileSync(outFile, Buffer.from(download.data));
+            echo "Ожидание завершения run-tests для коммита ${SHA}. Попытка $i/60"
+            sleep 10
+          done
+
+          echo "Не найден завершённый workflow run-tests для коммита ${SHA}"
+          exit 1
+
+      - name: Download allure-results artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+
+          for i in {1..30}; do
+            ARTIFACTS_JSON="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}/artifacts")"
+
+            ARTIFACT_URL="$(echo "$ARTIFACTS_JSON" | jq -r '.artifacts[] | select(.name == "allure-results" and .expired == false) | .archive_download_url' | head -n 1)"
+
+            if [ -n "$ARTIFACT_URL" ] && [ "$ARTIFACT_URL" != "null" ]; then
+              curl -L \
+                -H "Authorization: Bearer ${GH_TOKEN}" \
+                -H "Accept: application/vnd.github+json" \
+                "$ARTIFACT_URL" \
+                -o "${RUNNER_TEMP}/allure-results.zip"
+              exit 0
+            fi
+
+            echo "Ожидание artifact allure-results для run ${SOURCE_RUN_ID}. Попытка $i/30"
+            sleep 10
+          done
+
+          echo "Artifact allure-results для run ${SOURCE_RUN_ID} не найден"
+          exit 1
 
       - name: Unzip allure-results
         run: |
@@ -72,15 +110,10 @@ jobs:
       - name: Prepare Allure executor metadata
         run: |
           REPORT_DATE="$(date -u +'%Y-%m-%d_%H-%M-%S')"
-          SOURCE_RUN_NUMBER="${{ github.event.workflow_run.run_number }}"
-          SOURCE_RUN_ID="${{ github.event.workflow_run.id }}"
-          SOURCE_SHA="${{ github.event.workflow_run.head_sha }}"
-          SOURCE_BRANCH="${{ github.event.workflow_run.head_branch }}"
-          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}"
+          REPORT_PATH="${REPORTS_DIR}/${REPORT_DATE}_run-${SOURCE_RUN_NUMBER}"
 
           echo "REPORT_DATE=$REPORT_DATE" >> "$GITHUB_ENV"
-          echo "SOURCE_RUN_NUMBER=$SOURCE_RUN_NUMBER" >> "$GITHUB_ENV"
-          echo "REPORT_PATH=${REPORTS_DIR}/${REPORT_DATE}_run-${SOURCE_RUN_NUMBER}" >> "$GITHUB_ENV"
+          echo "REPORT_PATH=$REPORT_PATH" >> "$GITHUB_ENV"
 
           cat > allure-results/executor.json <<EOF
           {
@@ -89,7 +122,7 @@ jobs:
             "name": "GitHub Actions",
             "type": "github",
             "buildName": "run-tests #${SOURCE_RUN_NUMBER}",
-            "buildUrl": "${RUN_URL}"
+            "buildUrl": "${SOURCE_RUN_URL}"
           }
           EOF
 
@@ -101,7 +134,7 @@ jobs:
           EOF
 
       - name: Generate Allure report
-        run: mvn -B allure:report
+        run: mvn -B -DskipTests allure:report
 
       - name: Publish report to gh-pages
         env:
@@ -126,10 +159,14 @@ jobs:
             git checkout --orphan "$REPORT_BRANCH"
           fi
 
-          mkdir -p "$REPORT_PATH"
           mkdir -p latest
+          mkdir -p "$(dirname "$REPORT_PATH")"
 
           rm -rf latest/*
+          rm -rf "$REPORT_PATH"
+
+          mkdir -p "$REPORT_PATH"
+
           cp -R "${GITHUB_WORKSPACE}/target/site/allure-maven-plugin/." latest/
           cp -R "${GITHUB_WORKSPACE}/target/site/allure-maven-plugin/." "$REPORT_PATH/"
 
@@ -149,6 +186,21 @@ jobs:
 
           touch .nojekyll
 
+          rm -rf "${GITHUB_WORKSPACE}/pages-site"
+          mkdir -p "${GITHUB_WORKSPACE}/pages-site"
+          rsync -av --delete --exclude '.git' ./ "${GITHUB_WORKSPACE}/pages-site/"
+
           git add .
-          git commit -m "docs: publish Allure report #${SOURCE_RUN_NUMBER} (${REPORT_DATE})" || echo "No changes to commit"
+          git commit -m "docs: публикация Allure-отчета #${SOURCE_RUN_NUMBER} (${REPORT_DATE})" || echo "Нет изменений для коммита"
           git push origin "$REPORT_BRANCH"
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages-site
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
