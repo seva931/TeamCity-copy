@@ -32,7 +32,7 @@ public class ManageBuildTypeTest2 extends BaseUITest {
         step("Подготовить билд", () -> {
             buildName = TestDataGenerator.generateBuildName();
         });
-
+        System.out.println("доп инфа");
         step("Создать билд конфигурацию", () -> {
             new ProjectDetailsPage()
                     .open(project.getId())
