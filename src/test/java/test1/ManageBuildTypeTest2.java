@@ -33,10 +33,9 @@ public class ManageBuildTypeTest2 extends BaseUITest {
             buildName = TestDataGenerator.generateBuildName();
         });
         System.out.println("доп инфа");
-
         step("Создать билд конфигурацию", () -> {
             new ProjectDetailsPage()
-                    .open("89328923")
+                    .open(project.getId())
                     .goToCreateBuildType()
                     .getPage(CreateBuildTypePage.class)
                     .createBuildTypePage(buildName)
